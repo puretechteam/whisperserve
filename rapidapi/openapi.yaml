@@ -6,6 +6,9 @@ info:
   contact:
     name: WhisperServe API Support
     email: support@whisperserve.example.com
+  license:
+    name: MIT
+  termsOfService: https://whisperserve.com/terms
 
 servers:
   - url: http://localhost:8000
@@ -197,6 +200,13 @@ paths:
                     type: string
         "500":
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
 
   /v1/self-serve/signup:
     post:
@@ -279,6 +289,13 @@ paths:
                   period_days: 30
         "401":
           description: Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
 
   /v1/self-serve/analytics:
     get:
@@ -327,6 +344,13 @@ paths:
                           type: number
         "401":
           description: Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
 
   /v1/self-serve/api-keys:
     get:
@@ -367,6 +391,13 @@ paths:
                     revoked: true
         "401":
           description: Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
 
   /v1/self-serve/api-keys/{key_id}:
     delete:
@@ -398,6 +429,13 @@ paths:
                   detail: "API key revoked"
         "401":
           description: Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
         "404":
           description: API key not found or not owned by user
           content:
@@ -444,6 +482,13 @@ paths:
                           format: date-time
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
 
   /v1/webhooks:
     post:

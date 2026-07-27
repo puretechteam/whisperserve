@@ -10,8 +10,8 @@
   "customHeaders": {
     "Authorization": "Bearer <api_key>"
   },
-  "proxyUrl": "http://localhost:8000",
-  "languages": ["Python", "JavaScript", "cURL"],
+  "proxyUrl": "https://api.whisperserve.example.com",
+  "languages": ["python", "javascript", "curl"],
   "tags": [
     "transcription",
     "audio",
