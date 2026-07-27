@@ -24,8 +24,10 @@ logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.models = {}
+    app.state.billing = BillingService()
     yield
     app.state.models = None
+    app.state.billing = None
 
 
 app = FastAPI(lifespan=lifespan)
@@ -110,7 +112,7 @@ async def inference(
 
         result = engine.transcribe(content)
         if tier == "pay-as-you-go":
-            billing = BillingService()
+            billing = app.state.billing
             billing.record_usage(api_key, 1)
         cache_result(cache_key, result)
         latency_ms = int((time.monotonic() - start_time) * 1000)
@@ -145,7 +147,7 @@ async def inference(
 async def stripe_webhook(request: Request):
     payload = await request.body()
     sig_header = request.headers.get("Stripe-Signature", "")
-    billing = BillingService()
+    billing = app.state.billing
     event = billing.handle_webhook(payload, sig_header)
     if event is None:
         return JSONResponse(status_code=400, content={"error": "Invalid signature"})

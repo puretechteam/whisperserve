@@ -11,21 +11,19 @@ def provision_api_key(email: str) -> dict:
 
 def revoke_api_key(api_key: str) -> bool:
     db = get_db()
-    hashed_key = hash_api_key(api_key)
-    rows = list(db["api_keys"].rows_where("api_key = ?", (hashed_key,)))
+    rows = list(db["api_keys"].rows_where("api_key = ?", (api_key,)))
     if not rows:
         return False
     db["api_keys"].update(
         rows[0]["id"],
-        {"is_active": False},
+        {"revoked": True},
     )
     return True
 
 
 def is_api_key_valid(api_key: str) -> dict | None:
     db = get_db()
-    hashed_key = hash_api_key(api_key)
-    rows = list(db["api_keys"].rows_where("api_key = ?", (hashed_key,)))
-    if not rows or not rows[0].get("is_active"):
+    rows = list(db["api_keys"].rows_where("api_key = ?", (api_key,)))
+    if not rows or rows[0].get("revoked"):
         return None
     return rows[0]

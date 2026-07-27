@@ -74,11 +74,8 @@ class AsyncInferenceClient:
         return response.json()
 
     async def transcribe_batch(self, audio_paths: list) -> list:
-        results = []
-        for path in audio_paths:
-            result = await self.transcribe(path)
-            results.append(result)
-        return results
+        tasks = [self.transcribe(path) for path in audio_paths]
+        return await asyncio.gather(*tasks)
 
     async def get_usage(self) -> dict:
         response = await self._request_with_retry(

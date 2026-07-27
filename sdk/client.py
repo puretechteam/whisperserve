@@ -1,3 +1,4 @@
+import concurrent.futures
 import time
 import httpx
 from typing import Optional
@@ -63,10 +64,9 @@ class InferenceClient:
         return response.json()
 
     def transcribe_batch(self, audio_paths: list) -> list:
-        results = []
-        for path in audio_paths:
-            result = self.transcribe(path)
-            results.append(result)
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = [executor.submit(self.transcribe, path) for path in audio_paths]
+            results = [f.result() for f in concurrent.futures.as_completed(futures)]
         return results
 
     def get_usage(self) -> dict:

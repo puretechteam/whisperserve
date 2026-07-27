@@ -22,15 +22,14 @@ class BillingService:
 
     def create_api_key(self, customer_id: str, email: str = "") -> str:
         api_key = "ak_" + secrets.token_hex(16)
-        hashed_key = hash_api_key(api_key)
         db = get_db()
         db["api_keys"].insert(
             {
-                "api_key": hashed_key,
+                "api_key": api_key,
                 "customer_id": customer_id,
                 "email": email,
                 "created_at": datetime.now(timezone.utc).isoformat(),
-                "is_active": True,
+                "revoked": False,
             }
         )
         return api_key
@@ -57,10 +56,9 @@ class BillingService:
         )
 
     def get_customer_from_api_key(self, api_key: str) -> str | None:
-        hashed_key = hash_api_key(api_key)
         db = get_db()
-        rows = list(db["api_keys"].rows_where("api_key = ?", (hashed_key,)))
-        if not rows or not rows[0].get("is_active"):
+        rows = list(db["api_keys"].rows_where("api_key = ?", (api_key,)))
+        if not rows or rows[0].get("revoked"):
             return None
         return rows[0].get("customer_id")
 

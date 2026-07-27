@@ -6,7 +6,7 @@ from cryptography.hazmat.primitives.hashes import SHA256
 from cryptography.hazmat.primitives.hmac import HMAC
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-DB_PATH = PROJECT_ROOT / "data" / "billing.db"
+DB_PATH = PROJECT_ROOT / "data" / "usage.db"
 
 PEPPER = os.environ.get("API_KEY_PEPPER", "default-pepper-change-in-production")
 
@@ -20,8 +20,9 @@ def get_db():
             "api_key": str,
             "customer_id": str,
             "email": str,
+            "owner": str,
             "created_at": str,
-            "is_active": bool,
+            "revoked": bool,
             "tier": str,
         },
         pk="id",
@@ -40,7 +41,20 @@ def get_db():
         pk="id",
         if_not_exists=True,
     )
+    _migrate_api_keys(db)
     return db
+
+
+def _migrate_api_keys(db):
+    cols = db["api_keys"].columns_dict
+    if "customer_id" not in cols:
+        db["api_keys"].add_column("customer_id", str)
+    if "email" not in cols:
+        db["api_keys"].add_column("email", str)
+    if "owner" not in cols:
+        db["api_keys"].add_column("owner", str)
+    if "tier" not in cols:
+        db["api_keys"].add_column("tier", str)
 
 
 def hash_api_key(api_key: str) -> str:

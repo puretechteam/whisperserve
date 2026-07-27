@@ -1,41 +1,6 @@
-import os
-import sqlite_utils
 from datetime import datetime, timezone, timedelta
 
-DB_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-    "data",
-    "usage.db",
-)
-
-
-def _get_db():
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    db = sqlite_utils.Database(DB_PATH)
-    db["usage_log"].create(
-        {
-            "id": int,
-            "api_key": str,
-            "model": str,
-            "duration_ms": int,
-            "input_size_bytes": int,
-            "timestamp": str,
-            "latency_ms": int,
-            "status_code": int,
-        },
-        pk="id",
-        if_not_exists=True,
-    )
-    _migrate_columns(db)
-    return db
-
-
-def _migrate_columns(db):
-    cols = db["usage_log"].columns_dict
-    if "latency_ms" not in cols:
-        db["usage_log"].add_column("latency_ms", int)
-    if "status_code" not in cols:
-        db["usage_log"].add_column("status_code", int)
+from app.billing import get_db
 
 
 def log_usage(
@@ -46,7 +11,7 @@ def log_usage(
     latency_ms: int,
     status_code: int,
 ) -> None:
-    db = _get_db()
+    db = get_db()
     db["usage_log"].insert(
         {
             "api_key": api_key,
@@ -61,7 +26,7 @@ def log_usage(
 
 
 def get_usage(api_key: str, days: int = 30) -> dict:
-    db = _get_db()
+    db = get_db()
     since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
     rows = list(
         db["usage_log"]
@@ -81,7 +46,7 @@ def get_usage(api_key: str, days: int = 30) -> dict:
 
 
 def get_analytics(api_key: str, days: int = 30) -> dict:
-    db = _get_db()
+    db = get_db()
     since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
     rows = list(
         db["usage_log"]

@@ -85,7 +85,7 @@ def _calculate_amount(usage: dict) -> int:
 
 def get_all_active_customers() -> list[str]:
     db = get_db()
-    rows = list(db["api_keys"].rows_where("is_active = ?", (True,)))
+    rows = list(db["api_keys"].rows_where("revoked = ?", (False,)))
     return list(set(r["customer_id"] for r in rows if r.get("customer_id")))
 
 

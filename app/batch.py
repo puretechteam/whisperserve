@@ -8,7 +8,6 @@ from app.auth.api_key import get_api_key, get_api_key_tier, get_daily_usage_coun
 from app.logging.usage import log_usage
 from app.models.cache import get_cached_result, cache_result, get_cache_key
 from app.models.inference import InferenceEngine
-from app.billing.stripe import BillingService
 
 router = APIRouter()
 
@@ -91,7 +90,7 @@ async def batch_inference(
 
             result = engine.transcribe(content)
             if tier == "pay-as-you-go":
-                billing = BillingService()
+                billing = request.app.state.billing
                 billing.record_usage(api_key, 1)
             cache_result(cache_key, result)
             latency_ms = int((time.monotonic() - start_time) * 1000)

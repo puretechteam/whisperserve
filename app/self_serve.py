@@ -1,5 +1,3 @@
-import os
-import sqlite_utils
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi import Request
@@ -7,31 +5,9 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from app.auth.api_key import generate_api_key, get_api_key_owner, get_api_key, get_api_key_tier
+from app.billing import get_db
+from app.billing.provisioning import provision_api_key
 from app.logging.usage import get_usage, get_analytics
-
-DB_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "data",
-    "usage.db",
-)
-
-
-def _get_db():
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    db = sqlite_utils.Database(DB_PATH)
-    db["api_keys"].create(
-        {
-            "id": int,
-            "api_key": str,
-            "owner": str,
-            "created_at": str,
-            "revoked": bool,
-            "tier": str,
-        },
-        pk="id",
-        if_not_exists=True,
-    )
-    return db
 
 
 router = APIRouter()
@@ -48,9 +24,9 @@ class SignupResponse(BaseModel):
 
 @router.post("/self-serve/signup", response_model=SignupResponse)
 async def signup(request: SignupRequest):
-    owner = request.email
-    api_key = generate_api_key(owner, tier="free")
-    return SignupResponse(api_key=api_key, user_id=owner)
+    email = request.email
+    result = provision_api_key(email)
+    return SignupResponse(api_key=result["api_key"], user_id=email)
 
 
 class TierResponse(BaseModel):
@@ -74,7 +50,7 @@ async def upgrade_tier(
 ):
     if request.tier not in ("pay-as-you-go", "enterprise"):
         raise HTTPException(status_code=400, detail="Invalid tier")
-    db = _get_db()
+    db = get_db()
     owner = get_api_key_owner(api_key)
     if owner is None:
         raise HTTPException(status_code=401, detail="Invalid API key")
@@ -134,7 +110,7 @@ async def list_api_keys(api_key: str = Depends(get_api_key)):
     owner = get_api_key_owner(api_key)
     if owner is None:
         raise HTTPException(status_code=401, detail="Invalid API key")
-    db = _get_db()
+    db = get_db()
     rows = list(db["api_keys"].rows_where("owner = ?", (owner,)))
     return [
         {
@@ -152,7 +128,7 @@ async def revoke_api_key(key_id: int, api_key: str = Depends(get_api_key)):
     owner = get_api_key_owner(api_key)
     if owner is None:
         raise HTTPException(status_code=401, detail="Invalid API key")
-    db = _get_db()
+    db = get_db()
     row = db["api_keys"].get(key_id)
     if row is None or row.get("owner") != owner:
         raise HTTPException(status_code=404, detail="API key not found")
