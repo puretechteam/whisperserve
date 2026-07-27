@@ -6,6 +6,8 @@ from pydantic import BaseModel
 
 from app.auth.api_key import generate_api_key, get_api_key_owner, get_api_key, get_api_key_tier
 from app.billing import get_db
+from app.billing.stripe import BillingService
+from app.billing.invoices import get_invoices_for_customer
 from app.billing.provisioning import provision_api_key
 from app.logging.usage import get_usage, get_analytics
 
@@ -103,6 +105,18 @@ async def dashboard(api_key: str = Depends(get_api_key)):
 @router.get("/self-serve/analytics")
 async def analytics(api_key: str = Depends(get_api_key)):
     return JSONResponse(content=get_analytics(api_key))
+
+
+@router.get("/v1/self-serve/invoices")
+async def list_invoices(api_key: str = Depends(get_api_key)):
+    service = BillingService()
+    customer_id = service.get_customer_from_api_key(api_key)
+    if customer_id is None:
+        raise HTTPException(status_code=401, detail="Invalid API key")
+    invoices = get_invoices_for_customer(customer_id)
+    if not invoices:
+        raise HTTPException(status_code=404, detail="No invoices found")
+    return JSONResponse(content={"invoices": invoices})
 
 
 @router.get("/self-serve/api-keys")

@@ -85,3 +85,17 @@ def generate_invoices_for_all_active() -> list[dict]:
         except Exception:
             continue
     return results
+
+
+def get_invoices_for_customer(customer_id: str) -> list[dict]:
+    db = get_db()
+    rows = list(db["invoices"].rows_where("customer_id = ?", (customer_id,)))
+    return [
+        {
+            "invoice_id": r["invoice_id"],
+            "amount": r["amount"],
+            "status": r["status"],
+            "created_at": r["created_at"],
+        }
+        for r in rows
+    ]
