@@ -108,6 +108,29 @@ pip install -e ./sdk
 
 The SDK provides the `InferenceClient` and `AsyncInferenceClient` classes for programmatic access to the transcription API, along with `InferenceError` for exception handling.
 
+## Publishing the SDK
+
+To publish a new version of the SDK to PyPI:
+
+```bash
+cd sdk
+python -m build
+```
+
+Upload to TestPyPI first to verify:
+
+```bash
+twine upload --repository testpypi dist/*
+```
+
+Then upload to production PyPI:
+
+```bash
+twine upload dist/*
+```
+
+Requires a PyPI account and `twine` installed (`pip install twine`). Ensure `VERSION` and `sdk/VERSION` are updated before building.
+
 ## Versioning
 
 This project uses [Semantic Versioning (SemVer)](https://semver.org/). Version tags are automatically created on pushes to `master` based on commit messages.
