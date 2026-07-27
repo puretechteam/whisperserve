@@ -3,6 +3,9 @@ __pycache__/
 .env
 error.log
 *.db
+*.log
+signup_body.json
+test_audio.wav
 .venv/
 build/
 dist/
