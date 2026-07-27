@@ -17,7 +17,7 @@ class BillingService:
         )
 
     def create_customer(self, email: str) -> str:
-        customer = self._client.customers.create(email=email)
+        customer = self._client.v1.customers.create(params={"email": email})
         return customer.id
 
     def create_api_key(self, customer_id: str, email: str = "") -> str:
@@ -38,21 +38,25 @@ class BillingService:
         customer_id = self.get_customer_from_api_key(api_key)
         if customer_id is None:
             return
-        subscriptions = self._client.customers.list_subscriptions(
-            customer=customer_id,
+        subscriptions = self._client.v1.customers.list_subscriptions(
+            params={"customer": customer_id},
         )
         if not subscriptions.data:
             return
         subscription = subscriptions.data[0]
-        items = self._client.subscriptions.list_items(subscription.id)
+        items = self._client.v1.subscriptions.list_items(
+            params={"subscription": subscription.id},
+        )
         if not items.data:
             return
         subscription_item = items.data[0]
-        self._client.subscription_items.create_usage_record(
-            subscription_item.id,
-            quantity=quantity,
-            timestamp=int(time.time()),
-            action="increment",
+        self._client.v1.subscription_items.create_usage_record(
+            params={
+                "subscription_item": subscription_item.id,
+                "quantity": quantity,
+                "timestamp": int(time.time()),
+                "action": "increment",
+            },
         )
 
     def get_customer_from_api_key(self, api_key: str) -> str | None:
