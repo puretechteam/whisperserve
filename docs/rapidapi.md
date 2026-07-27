@@ -8,6 +8,7 @@ meta:
   og:description: "Step-by-step guide to publishing the WhisperServe Audio Transcription API on the RapidAPI marketplace."
   og:type: "article"
   og:url: "https://docs.whisperserve.com/docs/rapidapi"
+  og:image: "https://docs.whisperserve.com/og-rapidapi.png"
   twitter:card: "summary"
   twitter:title: "Publishing WhisperServe on RapidAPI"
   twitter:description: "Step-by-step guide to publishing the WhisperServe Audio Transcription API on RapidAPI."
