@@ -1,0 +1,98 @@
+{
+  "apiDefinitionUrl": "https://raw.githubusercontent.com/puretechteam/whisperserve/main/rapidapi/openapi.yaml",
+  "apiId": "whisperserve-audio-transcription",
+  "apiName": "WhisperServe Audio Transcription API",
+  "apiVersion": "1.0.0",
+  "category": "Audio & Speech",
+  "description": "FastAPI-based audio transcription service powered by OpenAI Whisper. Upload audio files and receive text transcriptions via a REST API.",
+  "type": "http",
+  "isPrivate": false,
+  "customHeaders": {
+    "Authorization": "Bearer <api_key>"
+  },
+  "proxyUrl": "http://localhost:8000",
+  "languages": ["Python", "JavaScript", "cURL"],
+  "tags": [
+    "transcription",
+    "audio",
+    "whisper",
+    "speech-to-text"
+  ],
+  "pricing": {
+    "type": "freemium",
+    "freeTier": {
+      "callsPerMonth": 100,
+      "rateLimit": "100 calls/day"
+    },
+    "paidPlans": [
+      {
+        "name": "pay-as-you-go",
+        "price": "Pay per use",
+        "currency": "USD"
+      },
+      {
+        "name": "enterprise",
+        "price": "Contact sales",
+        "currency": "USD"
+      }
+    ]
+  },
+  "authentication": {
+    "type": "apiKey",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Bearer"
+  },
+  "endpoints": [
+    {
+      "path": "/health",
+      "method": "GET",
+      "description": "Health check endpoint"
+    },
+    {
+      "path": "/v1/inference",
+      "method": "POST",
+      "description": "Transcribe an audio file"
+    },
+    {
+      "path": "/v1/inference/batch",
+      "method": "POST",
+      "description": "Batch audio transcription"
+    },
+    {
+      "path": "/v1/self-serve/signup",
+      "method": "POST",
+      "description": "Create a new account and API key"
+    },
+    {
+      "path": "/v1/self-serve/dashboard",
+      "method": "GET",
+      "description": "Get usage statistics"
+    },
+    {
+      "path": "/v1/self-serve/analytics",
+      "method": "GET",
+      "description": "Get detailed usage analytics"
+    },
+    {
+      "path": "/v1/self-serve/api-keys",
+      "method": "GET",
+      "description": "List API keys"
+    },
+    {
+      "path": "/v1/self-serve/api-keys/{key_id}",
+      "method": "DELETE",
+      "description": "Revoke an API key"
+    },
+    {
+      "path": "/v1/billing/generate-invoices",
+      "method": "POST",
+      "description": "Generate invoices for active customers"
+    },
+    {
+      "path": "/v1/webhooks",
+      "method": "POST",
+      "description": "Stripe webhook receiver"
+    }
+  ]
+}

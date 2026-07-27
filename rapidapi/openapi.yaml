@@ -1,0 +1,618 @@
+openapi: 3.0.3
+info:
+  title: WhisperServe Audio Transcription API
+  description: FastAPI-based audio transcription service powered by OpenAI Whisper. Upload audio files and receive text transcriptions via a REST API.
+  version: 1.0.0
+  contact:
+    name: WhisperServe API Support
+    email: support@whisperserve.example.com
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.whisperserve.example.com
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Returns the health status of the API service.
+      operationId: healthCheck
+      tags:
+        - Utility
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /v1/inference:
+    post:
+      summary: Transcribe an audio file
+      description: Upload an audio file and receive a text transcription. Supports caching for identical audio content. Free tier is limited to 100 calls per day.
+      operationId: transcribeAudio
+      tags:
+        - Inference
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Audio file to transcribe (wav, mp3, m4a, etc.)
+                model:
+                  type: string
+                  description: Whisper model variant to use (default: base)
+                  example: base
+      parameters:
+        - name: model
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Whisper model variant to use (overrides the form field)
+      responses:
+        "200":
+          description: Transcription result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transcription:
+                    type: string
+                    description: The transcribed text
+                  cached:
+                    type: boolean
+                    description: Whether the result was served from cache
+                example:
+                  transcription: "Hello world"
+                  cached: false
+        "401":
+          description: Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                example:
+                  error: "Invalid API key"
+        "429":
+          description: Free tier daily limit reached
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                example:
+                  error: "Free tier limit reached: 100 calls/day"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /v1/inference/batch:
+    post:
+      summary: Batch audio transcription
+      description: Upload multiple audio files and receive transcriptions for each. Each file is processed independently with caching support.
+      operationId: batchTranscribeAudio
+      tags:
+        - Inference
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - files
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: Audio files to transcribe
+                model:
+                  type: string
+                  description: Whisper model variant to use (default: base)
+                  example: base
+      parameters:
+        - name: model
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Whisper model variant to use (overrides the form field)
+      responses:
+        "200":
+          description: Batch transcription results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        transcription:
+                          type: string
+                          description: The transcribed text
+                        cached:
+                          type: boolean
+                          description: Whether the result was served from cache
+                        filename:
+                          type: string
+                          description: Original filename of the uploaded audio file
+                        error:
+                          type: string
+                          description: Error message if transcription failed for this file
+                example:
+                  results:
+                    - transcription: "Hello world"
+                      cached: false
+                      filename: "audio1.wav"
+                    - transcription: "Goodbye world"
+                      cached: true
+                      filename: "audio2.wav"
+        "401":
+          description: Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          description: Internal server error
+
+  /v1/self-serve/signup:
+    post:
+      summary: Create a new account and API key
+      description: Register a new user and receive an API key for authentication. No authentication required.
+      operationId: signup
+      tags:
+        - Self-Serve
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: User email address
+              example:
+                email: user@example.com
+      responses:
+        "200":
+          description: Account created with API key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_key:
+                    type: string
+                    description: The generated API key for authentication
+                  user_id:
+                    type: string
+                    description: The user identifier (email)
+                example:
+                  api_key: "ak_abc123def456..."
+                  user_id: "user@example.com"
+
+  /v1/self-serve/dashboard:
+    get:
+      summary: Get usage dashboard
+      description: Retrieve usage statistics for the authenticated API key over the last 30 days.
+      operationId: getDashboard
+      tags:
+        - Self-Serve
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Usage statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_requests:
+                    type: integer
+                    description: Total number of requests in the period
+                  total_duration_ms:
+                    type: integer
+                    description: Total transcription duration in milliseconds
+                  total_input_bytes:
+                    type: integer
+                    description: Total input audio size in bytes
+                  avg_duration_ms:
+                    type: number
+                    description: Average transcription duration per request in milliseconds
+                  period_days:
+                    type: integer
+                    description: Number of days the statistics cover
+                example:
+                  total_requests: 150
+                  total_duration_ms: 45000
+                  total_input_bytes: 10485760
+                  avg_duration_ms: 300
+                  period_days: 30
+        "401":
+          description: Invalid or missing API key
+
+  /v1/self-serve/analytics:
+    get:
+      summary: Get usage analytics
+      description: Retrieve detailed analytics including per-day breakdown, error rates, and latency metrics for the authenticated API key.
+      operationId: getAnalytics
+      tags:
+        - Self-Serve
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Detailed analytics data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_requests:
+                    type: integer
+                  total_duration_ms:
+                    type: integer
+                  total_input_bytes:
+                    type: integer
+                  avg_duration_ms:
+                    type: number
+                  avg_latency_ms:
+                    type: number
+                  error_rate:
+                    type: number
+                    description: Percentage of requests that resulted in errors
+                  period_days:
+                    type: integer
+                  per_day_breakdown:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                        requests:
+                          type: integer
+                        errors:
+                          type: integer
+                        avg_latency_ms:
+                          type: number
+        "401":
+          description: Invalid or missing API key
+
+  /v1/self-serve/api-keys:
+    get:
+      summary: List API keys
+      description: List all API keys owned by the authenticated user.
+      operationId: listApiKeys
+      tags:
+        - Self-Serve
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of API keys
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    api_key:
+                      type: string
+                    created_at:
+                      type: string
+                      format: date-time
+                    revoked:
+                      type: boolean
+                example:
+                  - id: 1
+                    api_key: "ak_abc123..."
+                    created_at: "2026-07-26T12:00:00+00:00"
+                    revoked: false
+                  - id: 2
+                    api_key: "ak_def456..."
+                    created_at: "2026-07-27T08:30:00+00:00"
+                    revoked: true
+        "401":
+          description: Invalid or missing API key
+
+  /v1/self-serve/api-keys/{key_id}:
+    delete:
+      summary: Revoke an API key
+      description: Revoke a specific API key owned by the authenticated user. Once revoked, the key can no longer be used.
+      operationId: revokeApiKey
+      tags:
+        - Self-Serve
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: key_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the API key to revoke
+      responses:
+        "200":
+          description: API key revoked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                example:
+                  detail: "API key revoked"
+        "401":
+          description: Invalid or missing API key
+        "404":
+          description: API key not found or not owned by user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+
+  /v1/billing/generate-invoices:
+    post:
+      summary: Generate invoices for active customers
+      description: Generate billing invoices for all active customers. This endpoint is intended for internal billing use.
+      operationId: generateInvoices
+      tags:
+        - Billing
+      responses:
+        "200":
+          description: Invoice generation results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  generated:
+                    type: integer
+                    description: Number of invoices generated
+                  invoices:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        invoice_id:
+                          type: string
+                        customer_id:
+                          type: string
+                        amount:
+                          type: integer
+                        status:
+                          type: string
+                        created_at:
+                          type: string
+                          format: date-time
+        "401":
+          description: Unauthorized
+
+  /v1/webhooks:
+    post:
+      summary: Stripe webhook receiver
+      description: Receive webhook events from Stripe for payment and subscription updates. No authentication required — events are verified via Stripe signature.
+      operationId: stripeWebhook
+      tags:
+        - Webhooks
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Stripe webhook event payload
+      parameters:
+        - name: Stripe-Signature
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Stripe webhook signature header for event verification
+      responses:
+        "200":
+          description: Webhook event received successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  received:
+                    type: boolean
+                example:
+                  received: true
+        "400":
+          description: Invalid Stripe signature
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                example:
+                  error: "Invalid signature"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API Key
+      description: Pass the API key in the Authorization header as a Bearer token.
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+
+    SignupRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+
+    SignupResponse:
+      type: object
+      properties:
+        api_key:
+          type: string
+        user_id:
+          type: string
+
+    TranscriptionResult:
+      type: object
+      properties:
+        transcription:
+          type: string
+        cached:
+          type: boolean
+
+    BatchResult:
+      type: object
+      properties:
+        transcription:
+          type: string
+        cached:
+          type: boolean
+        filename:
+          type: string
+        error:
+          type: string
+
+    UsageStats:
+      type: object
+      properties:
+        total_requests:
+          type: integer
+        total_duration_ms:
+          type: integer
+        total_input_bytes:
+          type: integer
+        avg_duration_ms:
+          type: number
+        period_days:
+          type: integer
+
+    AnalyticsData:
+      type: object
+      properties:
+        total_requests:
+          type: integer
+        total_duration_ms:
+          type: integer
+        total_input_bytes:
+          type: integer
+        avg_duration_ms:
+          type: number
+        avg_latency_ms:
+          type: number
+        error_rate:
+          type: number
+        period_days:
+          type: integer
+        per_day_breakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              requests:
+                type: integer
+              errors:
+                type: integer
+              avg_latency_ms:
+                type: number
+
+    ApiKey:
+      type: object
+      properties:
+        id:
+          type: integer
+        api_key:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        revoked:
+          type: boolean
+
+    Invoice:
+      type: object
+      properties:
+        invoice_id:
+          type: string
+        customer_id:
+          type: string
+        amount:
+          type: integer
+        status:
+          type: string
+        created_at:
+          type: string
+          format: date-time

@@ -1,0 +1,81 @@
+import os
+import secrets
+import time
+from datetime import datetime, timezone
+
+import stripe
+
+from . import get_db, hash_api_key
+
+WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+
+
+class BillingService:
+    def __init__(self):
+        self._client = stripe.StripeClient(
+            os.environ.get("STRIPE_SECRET_KEY", "")
+        )
+
+    def create_customer(self, email: str) -> str:
+        customer = self._client.customers.create(email=email)
+        return customer.id
+
+    def create_api_key(self, customer_id: str, email: str = "") -> str:
+        api_key = "ak_" + secrets.token_hex(16)
+        hashed_key = hash_api_key(api_key)
+        db = get_db()
+        db["api_keys"].insert(
+            {
+                "api_key": hashed_key,
+                "customer_id": customer_id,
+                "email": email,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "is_active": True,
+            }
+        )
+        return api_key
+
+    def record_usage(self, api_key: str, quantity: int):
+        customer_id = self.get_customer_from_api_key(api_key)
+        if customer_id is None:
+            return
+        subscriptions = self._client.customers.list_subscriptions(
+            customer=customer_id,
+        )
+        if not subscriptions.data:
+            return
+        subscription = subscriptions.data[0]
+        items = self._client.subscriptions.list_items(subscription.id)
+        if not items.data:
+            return
+        subscription_item = items.data[0]
+        self._client.subscription_items.create_usage_record(
+            subscription_item.id,
+            quantity=quantity,
+            timestamp=int(time.time()),
+            action="increment",
+        )
+
+    def get_customer_from_api_key(self, api_key: str) -> str | None:
+        hashed_key = hash_api_key(api_key)
+        db = get_db()
+        rows = list(db["api_keys"].rows_where("api_key = ?", (hashed_key,)))
+        if not rows or not rows[0].get("is_active"):
+            return None
+        return rows[0].get("customer_id")
+
+    def handle_webhook(self, payload: bytes, sig_header: str) -> dict | None:
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, WEBHOOK_SECRET,
+            )
+        except (stripe.error.SignatureVerificationError, ValueError):
+            return None
+        event_type = event["type"]
+        if event_type in (
+            "customer.subscription.created",
+            "invoice.payment_succeeded",
+            "invoice.payment_failed",
+        ):
+            return event["data"]["object"]
+        return None
