@@ -78,7 +78,7 @@ git checkout -b describe-your-change
 ```
 
 2. Make your changes and commit them with clear, descriptive messages.
-3. Push your branch to your fork and open a Pull Request against the `main` branch.
+3. Push your branch to your fork and open a Pull Request against the `master` branch.
 4. Ensure all CI checks pass before requesting review.
 
 ## Issue Reports

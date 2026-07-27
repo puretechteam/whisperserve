@@ -96,7 +96,7 @@ The SDK provides the `InferenceClient` class for programmatic access to the tran
 
 ## Versioning
 
-This project uses [Semantic Versioning (SemVer)](https://semver.org/). Version tags are automatically created on pushes to `main` based on commit messages.
+This project uses [Semantic Versioning (SemVer)](https://semver.org/). Version tags are automatically created on pushes to `master` based on commit messages.
 
 ## License
 
