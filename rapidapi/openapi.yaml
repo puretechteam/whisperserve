@@ -60,7 +60,7 @@ paths:
                   description: Audio file to transcribe (wav, mp3, m4a, etc.)
                 model:
                   type: string
-                  description: Whisper model variant to use (default: base)
+                  description: "Whisper model variant to use (default: base)"
                   example: base
       parameters:
         - name: model
@@ -144,7 +144,7 @@ paths:
                   description: Audio files to transcribe
                 model:
                   type: string
-                  description: Whisper model variant to use (default: base)
+                  description: "Whisper model variant to use (default: base)"
                   example: base
       parameters:
         - name: model
