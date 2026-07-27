@@ -7,7 +7,9 @@ name = "whisperserve-sdk"
 dynamic = ["version"]
 description = "Python SDK for the WhisperServe Audio Transcription API"
 requires-python = ">=3.8"
-author = "Pure Tech"
+authors = [
+    {name = "Pure Tech"},
+]
 license = {text = "MIT"}
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -27,7 +29,7 @@ dependencies = [
 Homepage = "https://github.com/puretechteam/whisperserve"
 
 [tool.setuptools.dynamic]
-version = {file = "../VERSION"}
+version = {file = "VERSION"}
 
 [tool.setuptools]
 packages = ["sdk"]
