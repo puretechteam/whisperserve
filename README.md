@@ -7,7 +7,7 @@ A FastAPI-based audio transcription service powered by OpenAI Whisper. Upload au
 ### Installation
 
 ```bash
-pip install -r requirements.txt
+pip install whisperserve-sdk
 ```
 
 ### Sign Up
@@ -43,7 +43,7 @@ Response:
 ### Python SDK
 
 ```python
-from sdk import InferenceClient
+from whisperserve_sdk import InferenceClient
 
 client = InferenceClient(api_key="ak_abc123...")
 
@@ -56,10 +56,18 @@ print(f"Total requests: {usage['total_requests']}")
 client.close()
 ```
 
+### Pricing
+
+| Tier | Price per Call | Daily Limit | Description |
+|------|---------------|-------------|-------------|
+| Free | $0.00 | 100 calls/day | Free tier — 100 calls per day |
+| Pay-as-you-go | $0.10 | 10,000 calls/day | Pro tier — $0.10 per call, 10,000 calls per day |
+| Enterprise | Custom | Unlimited | Enterprise tier — custom pricing, contact us |
+
 ### Error Handling
 
 ```python
-from sdk import InferenceClient, InferenceError
+from whisperserve_sdk import InferenceClient, InferenceError
 
 client = InferenceClient(api_key="ak_abc123...")
 
@@ -86,13 +94,19 @@ Key endpoints:
 
 ## SDK Installation
 
-Install the SDK locally in editable mode:
+Install the SDK from PyPI:
+
+```bash
+pip install whisperserve-sdk
+```
+
+Or install locally in editable mode for development:
 
 ```bash
 pip install -e ./sdk
 ```
 
-The SDK provides the `InferenceClient` class for programmatic access to the transcription API, along with `InferenceError` for exception handling.
+The SDK provides the `InferenceClient` and `AsyncInferenceClient` classes for programmatic access to the transcription API, along with `InferenceError` for exception handling.
 
 ## Versioning
 
