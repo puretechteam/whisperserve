@@ -3,7 +3,7 @@ import logging
 import time
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, UploadFile, File, Depends, Request, Query
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from dotenv import load_dotenv
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
@@ -59,6 +59,22 @@ def _get_engine(app: FastAPI, model_name: str) -> InferenceEngine:
 @app.get("/health")
 async def health():
     return JSONResponse(content={"status": "ok"})
+
+
+@app.get("/sitemap.xml")
+async def sitemap():
+    sitemap_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "sitemap.xml")
+    with open(sitemap_path, "r") as f:
+        content = f.read()
+    return Response(content=content, media_type="application/xml")
+
+
+@app.get("/robots.txt")
+async def robots():
+    robots_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "robots.txt")
+    with open(robots_path, "r") as f:
+        content = f.read()
+    return Response(content=content, media_type="text/plain")
 
 
 @app.post("/v1/inference")
@@ -160,9 +176,10 @@ async def stripe_webhook(request: Request):
     payload = await request.body()
     sig_header = request.headers.get("Stripe-Signature", "")
     billing = app.state.billing
-    event = billing.handle_webhook(payload, sig_header)
-    if event is None:
+    result = billing.handle_webhook(payload, sig_header)
+    if result is None:
         return JSONResponse(status_code=400, content={"error": "Invalid signature"})
+    billing.process_webhook_event(result["type"], result["data"])
     return JSONResponse(content={"received": True})
 
 

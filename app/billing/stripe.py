@@ -69,5 +69,53 @@ class BillingService:
             "invoice.payment_succeeded",
             "invoice.payment_failed",
         ):
-            return event["data"]["object"]
+            return {"type": event_type, "data": event["data"]["object"]}
         return None
+
+    def process_webhook_event(self, event_type: str, event_data: dict) -> None:
+        db = get_db()
+        if event_type == "customer.subscription.created":
+            db["subscriptions"].insert(
+                {
+                    "customer_id": event_data.get("customer", ""),
+                    "subscription_id": event_data.get("id", ""),
+                    "status": event_data.get("status", "active"),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                }
+            )
+        elif event_type == "invoice.payment_succeeded":
+            subscription_id = event_data.get("subscription", "")
+            customer_id = event_data.get("customer", "")
+            if subscription_id:
+                rows = list(
+                    db["subscriptions"].rows_where(
+                        "subscription_id = ?", (subscription_id,)
+                    )
+                )
+                if rows:
+                    db["subscriptions"].update(
+                        rows[0]["id"],
+                        {"status": "active"},
+                    )
+                elif customer_id:
+                    db["subscriptions"].insert(
+                        {
+                            "customer_id": customer_id,
+                            "subscription_id": subscription_id,
+                            "status": "active",
+                            "created_at": datetime.now(timezone.utc).isoformat(),
+                        }
+                    )
+        elif event_type == "invoice.payment_failed":
+            subscription_id = event_data.get("subscription", "")
+            if subscription_id:
+                rows = list(
+                    db["subscriptions"].rows_where(
+                        "subscription_id = ?", (subscription_id,)
+                    )
+                )
+                if rows:
+                    db["subscriptions"].update(
+                        rows[0]["id"],
+                        {"status": "past_due"},
+                    )
