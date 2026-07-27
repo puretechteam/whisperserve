@@ -5,6 +5,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, UploadFile, File, Depends, Request, Query
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
 
 from app.batch import router as batch_router
 from app.auth.api_key import get_api_key, get_api_key_tier, get_daily_usage_count
@@ -23,6 +26,15 @@ logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    sentry_sdk.init(
+        dsn=os.getenv("SENTRY_DSN", ""),
+        integrations=[
+            FastApiIntegration(),
+            LoggingIntegration(),
+        ],
+        traces_sample_rate=os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1"),
+        environment=os.getenv("ENVIRONMENT", "development"),
+    )
     app.state.models = {}
     app.state.billing = BillingService()
     yield
@@ -158,3 +170,10 @@ async def stripe_webhook(request: Request):
 async def generate_invoices():
     results = generate_invoices_for_all_active()
     return JSONResponse(content={"generated": len(results), "invoices": results})
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    sentry_sdk.capture_exception(exc)
+    logging.exception("Unhandled exception for %s", request.url.path)
+    return JSONResponse(status_code=500, content={"error": "Internal server error"})
