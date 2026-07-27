@@ -9,6 +9,102 @@ info:
   license:
     name: MIT
   termsOfService: https://whisperserve.com/terms
+x-proxyUrl: https://api.whisperserve.example.com
+x-languages:
+  - af
+  - am
+  - ar
+  - as
+  - az
+  - be
+  - bg
+  - bn
+  - bo
+  - br
+  - bs
+  - ca
+  - cs
+  - cy
+  - da
+  - de
+  - el
+  - en
+  - es
+  - et
+  - eu
+  - fa
+  - fi
+  - fr
+  - gl
+  - gu
+  - ha
+  - haw
+  - hi
+  - hr
+  - hu
+  - hy
+  - id
+  - is
+  - it
+  - ja
+  - jv
+  - ka
+  - kk
+  - km
+  - kn
+  - ko
+  - la
+  - lb
+  - ln
+  - lo
+  - lt
+  - lv
+  - mg
+  - mi
+  - mk
+  - ml
+  - mn
+  - mr
+  - ms
+  - mt
+  - my
+  - ne
+  - nl
+  - nn
+  - no
+  - oc
+  - pa
+  - pl
+  - ps
+  - pt
+  - ro
+  - ru
+  - rw
+  - sa
+  - sd
+  - si
+  - sk
+  - sl
+  - sn
+  - so
+  - sq
+  - sr
+  - su
+  - sv
+  - sw
+  - ta
+  - te
+  - tg
+  - th
+  - tk
+  - tr
+  - uk
+  - ur
+  - uz
+  - vi
+  - yi
+  - yo
+  - zh
 
 servers:
   - url: http://localhost:8000
@@ -94,32 +190,23 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                example:
-                  error: "Invalid API key"
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Invalid API key"
         "429":
           description: Free tier daily limit reached
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                example:
-                  error: "Free tier limit reached: 100 calls/day"
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Free tier limit reached: 100 calls/day"
         "500":
           description: Internal server error
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+                $ref: '#/components/schemas/Error'
 
   /v1/inference/batch:
     post:
@@ -194,19 +281,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+                $ref: '#/components/schemas/Error'
         "500":
           description: Internal server error
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+                $ref: '#/components/schemas/Error'
 
   /v1/self-serve/signup:
     post:
@@ -292,10 +373,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+                $ref: '#/components/schemas/Error'
 
   /v1/self-serve/analytics:
     get:
@@ -347,10 +425,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+                $ref: '#/components/schemas/Error'
 
   /v1/self-serve/api-keys:
     get:
@@ -394,10 +469,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+                $ref: '#/components/schemas/Error'
 
   /v1/self-serve/api-keys/{key_id}:
     delete:
@@ -432,19 +504,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+                $ref: '#/components/schemas/Error'
         "404":
           description: API key not found or not owned by user
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  detail:
-                    type: string
+                $ref: '#/components/schemas/Error'
 
   /v1/billing/generate-invoices:
     post:
@@ -485,10 +551,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+                $ref: '#/components/schemas/Error'
 
   /v1/webhooks:
     post:
@@ -529,12 +592,9 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                example:
-                  error: "Invalid signature"
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Invalid signature"
 
 components:
   securitySchemes:
@@ -551,6 +611,9 @@ components:
         error:
           type: string
           description: Error message
+        detail:
+          type: string
+          description: Detailed error information
 
     SignupRequest:
       type: object
