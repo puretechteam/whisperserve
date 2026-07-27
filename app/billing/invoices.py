@@ -10,12 +10,8 @@ from app.logging.usage import get_usage
 
 def generate_invoice(customer_id: str) -> dict:
     service = BillingService()
-    invoice = service._client.v1.invoices.create(
-        params={"customer": customer_id, "auto_advance": True},
-    )
-    finalized = service._client.v1.invoices.finalize_invoice(
-        params={"invoice": invoice.id},
-    )
+    invoice = service._client.invoices.create(customer=customer_id, auto_advance=True)
+    finalized = service._client.invoices.finalize_invoice(invoice=invoice.id)
     return {
         "invoice_id": finalized.id,
         "customer_id": customer_id,
@@ -37,25 +33,11 @@ def generate_invoice_for_usage(api_key: str) -> dict | None:
 
     amount_cents = _calculate_amount(usage)
 
-    invoice = service._client.v1.invoices.create(
-        params={"customer": customer_id, "auto_advance": True},
-    )
+    invoice = service._client.invoices.create(customer=customer_id, auto_advance=True)
 
-    service._client.v1.invoices.create_line_item(
-        params={
-            "invoice": invoice.id,
-            "price_data": {
-                "currency": "usd",
-                "product_data": {"name": "API Usage"},
-                "unit_amount": amount_cents,
-            },
-            "quantity": 1,
-        },
-    )
+    service._client.invoices.create_line_item(invoice=invoice.id, price_data={"currency": "usd", "product_data": {"name": "API Usage"}, "unit_amount": amount_cents}, quantity=1)
 
-    finalized = service._client.v1.invoices.finalize_invoice(
-        params={"invoice": invoice.id},
-    )
+    finalized = service._client.invoices.finalize_invoice(invoice=invoice.id)
 
     db = get_db()
     db["invoices"].insert(

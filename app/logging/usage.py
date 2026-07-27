@@ -55,10 +55,10 @@ def get_analytics(api_key: str, days: int = 30) -> dict:
     total_requests = len(rows)
     total_duration = sum(r["duration_ms"] for r in rows)
     total_input = sum(r["input_size_bytes"] for r in rows)
-    total_latency = sum(r["latency_ms"] for r in rows)
+    total_latency = sum(r["latency_ms"] or 0 for r in rows)
     avg_duration = total_duration / total_requests if total_requests > 0 else 0
     avg_latency = total_latency / total_requests if total_requests > 0 else 0
-    errors = sum(1 for r in rows if r["status_code"] >= 400)
+    errors = sum(1 for r in rows if (r["status_code"] or 0) >= 400)
     error_rate = (errors / total_requests * 100) if total_requests > 0 else 0
 
     per_day = {}
@@ -67,9 +67,9 @@ def get_analytics(api_key: str, days: int = 30) -> dict:
         if date not in per_day:
             per_day[date] = {"requests": 0, "errors": 0, "latency_sum": 0}
         per_day[date]["requests"] += 1
-        if r["status_code"] >= 400:
+        if (r["status_code"] or 0) >= 400:
             per_day[date]["errors"] += 1
-        per_day[date]["latency_sum"] += r["latency_ms"]
+        per_day[date]["latency_sum"] += r["latency_ms"] or 0
 
     per_day_breakdown = []
     for date in sorted(per_day.keys()):
