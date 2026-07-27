@@ -41,6 +41,31 @@ def get_db():
         pk="id",
         if_not_exists=True,
     )
+    db["usage_log"].create(
+        {
+            "id": int,
+            "api_key": str,
+            "model": str,
+            "duration_ms": int,
+            "input_size_bytes": int,
+            "latency_ms": int,
+            "status_code": int,
+            "timestamp": str,
+        },
+        pk="id",
+        if_not_exists=True,
+    )
+    db["subscriptions"].create(
+        {
+            "id": int,
+            "customer_id": str,
+            "subscription_id": str,
+            "status": str,
+            "created_at": str,
+        },
+        pk="id",
+        if_not_exists=True,
+    )
     _migrate_api_keys(db)
     _migrate_usage_log(db)
     return db

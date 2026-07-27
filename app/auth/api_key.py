@@ -10,7 +10,7 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def generate_api_key(owner: str, tier: str = "free") -> str:
+def generate_api_key(owner: str, tier: str = "free", customer_id: str = "", email: str = "") -> str:
     prefix = os.getenv("API_KEY_PREFIX", "ak_")
     key = prefix + secrets.token_hex(16)
     db = get_db()
@@ -18,6 +18,8 @@ def generate_api_key(owner: str, tier: str = "free") -> str:
         {
             "api_key": key,
             "owner": owner,
+            "customer_id": customer_id,
+            "email": email,
             "created_at": _now(),
             "revoked": False,
             "tier": tier,
