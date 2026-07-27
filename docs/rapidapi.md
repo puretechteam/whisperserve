@@ -1,3 +1,37 @@
+<!--
+---
+meta:
+  title: "Publishing WhisperServe on RapidAPI"
+  description: "Guide to publishing the WhisperServe Audio Transcription API on the RapidAPI marketplace."
+  keywords: "RapidAPI, WhisperServe, audio transcription API, publish API, FastAPI, OpenAI Whisper"
+  og:title: "Publishing WhisperServe on RapidAPI"
+  og:description: "Step-by-step guide to publishing the WhisperServe Audio Transcription API on the RapidAPI marketplace."
+  og:type: "article"
+  og:url: "https://docs.whisperserve.com/docs/rapidapi"
+  twitter:card: "summary"
+  twitter:title: "Publishing WhisperServe on RapidAPI"
+  twitter:description: "Step-by-step guide to publishing the WhisperServe Audio Transcription API on RapidAPI."
+  twitter:url: "https://docs.whisperserve.com/docs/rapidapi"
+  twitter:image: "https://docs.whisperserve.com/og-rapidapi.png"
+---
+-->
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "name": "Publishing WhisperServe on RapidAPI",
+  "description": "Guide to publishing the WhisperServe Audio Transcription API on the RapidAPI marketplace.",
+  "keywords": ["RapidAPI", "WhisperServe", "audio transcription API", "publish API", "FastAPI", "OpenAI Whisper"],
+  "author": {
+    "@type": "Organization",
+    "name": "WhisperServe"
+  },
+  "url": "https://docs.whisperserve.com/docs/rapidapi",
+  "sameAs": "https://github.com/puretechteam/whisperserve"
+}
+</script>
+
 # Publishing WhisperServe on RapidAPI
 
 This guide covers the steps to publish the WhisperServe Audio Transcription API on the RapidAPI marketplace.

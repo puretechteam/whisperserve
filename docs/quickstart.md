@@ -6,6 +6,11 @@ meta:
   og:title: "WhisperServe — Quick Start"
   og:description: "Get started with the WhisperServe audio transcription API. Transcribe audio files via REST or Python SDK."
   og:type: "article"
+  og:url: "https://docs.whisperserve.com/docs/quickstart"
+  og:image: "https://docs.whisperserve.com/og-quickstart.png"
+  twitter:card: "summary"
+  twitter:title: "WhisperServe — Quick Start"
+  twitter:description: "Get started with the WhisperServe audio transcription API. Transcribe audio files via REST or Python SDK."
 ---
 -->
 

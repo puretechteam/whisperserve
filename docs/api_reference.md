@@ -6,6 +6,11 @@ meta:
   og:title: "WhisperServe API Reference"
   og:description: "Full API reference for the WhisperServe Audio Transcription API with endpoint details, request/response schemas, and error codes."
   og:type: "article"
+  og:url: "https://docs.whisperserve.com/docs/api-reference"
+  og:image: "https://docs.whisperserve.com/og-api-reference.png"
+  twitter:card: "summary"
+  twitter:title: "WhisperServe API Reference"
+  twitter:description: "Full API reference for the WhisperServe Audio Transcription API with endpoint details, request/response schemas, and error codes."
 ---
 -->
 

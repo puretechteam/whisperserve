@@ -17,6 +17,7 @@ Search engines use sitemaps to discover and index pages efficiently.
 | 1.0 | daily | Documentation Home | `/docs/index.md` |
 | 0.9 | weekly | Quick Start Guide | `/docs/quickstart.md` |
 | 0.9 | weekly | API Reference | `/docs/api_reference.md` |
+| 0.8 | weekly | RapidAPI Guide | `/docs/rapidapi.md` |
 
 ## Sitemap XML (for deployment)
 
@@ -43,6 +44,12 @@ When deployed, the following XML sitemap should be served at `/sitemap.xml`:
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
+  <url>
+    <loc>https://docs.whisperserve.com/docs/rapidapi</loc>
+    <lastmod>2026-07-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>
 ```
 
@@ -53,7 +60,7 @@ The following `robots.txt` configuration should be placed at the site root to gu
 ```
 User-agent: *
 Allow: /docs/
-Disallow: /
+Disallow:
 
 Sitemap: https://docs.whisperserve.com/sitemap.xml
 ```
