@@ -94,6 +94,10 @@ pip install -e ./sdk
 
 The SDK provides the `InferenceClient` class for programmatic access to the transcription API, along with `InferenceError` for exception handling.
 
+## Versioning
+
+This project uses [Semantic Versioning (SemVer)](https://semver.org/). Version tags are automatically created on pushes to `main` based on commit messages.
+
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.

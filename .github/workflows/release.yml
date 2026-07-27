@@ -1,0 +1,100 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read current version
+        id: version
+        run: |
+          VERSION=$(cat VERSION)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Determine version bump
+        id: bump
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            COMMITS=$(git log --pretty=format:%B)
+          else
+            COMMITS=$(git log $LAST_TAG..HEAD --pretty=format:%B)
+          fi
+
+          BUMP_TYPE="none"
+          if echo "$COMMITS" | grep -q "BREAKING CHANGE:"; then
+            BUMP_TYPE="major"
+          elif echo "$COMMITS" | grep -q "^feat:"; then
+            BUMP_TYPE="minor"
+          elif echo "$COMMITS" | grep -q "^fix:"; then
+            BUMP_TYPE="patch"
+          fi
+
+          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+          echo "commits<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Compute new version
+        if: steps.bump.outputs.bump_type != 'none'
+        id: new_version
+        run: |
+          IFS='.' read -r MAJOR MINOR PATCH <<< "${{ steps.version.outputs.version }}"
+          BUMP_TYPE="${{ steps.bump.outputs.bump_type }}"
+
+          case $BUMP_TYPE in
+            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH + 1)) ;;
+          esac
+
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update VERSION file
+        if: steps.bump.outputs.bump_type != 'none'
+        run: |
+          echo "${{ steps.new_version.outputs.new_version }}" > VERSION
+
+      - name: Configure git
+        if: steps.bump.outputs.bump_type != 'none'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit version bump
+        if: steps.bump.outputs.bump_type != 'none'
+        run: |
+          git add VERSION
+          git commit -m "bump version to ${{ steps.new_version.outputs.new_version }}"
+
+      - name: Create tag
+        if: steps.bump.outputs.bump_type != 'none'
+        run: |
+          git tag "v${{ steps.new_version.outputs.new_version }}"
+
+      - name: Push commit and tag
+        if: steps.bump.outputs.bump_type != 'none'
+        run: |
+          git push origin HEAD
+          git push origin "v${{ steps.new_version.outputs.new_version }}"
+
+      - name: Create GitHub Release
+        if: steps.bump.outputs.bump_type != 'none'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.new_version.outputs.new_version }}
+          body: |
+            Commits since last release:
+            ${{ steps.bump.outputs.commits }}

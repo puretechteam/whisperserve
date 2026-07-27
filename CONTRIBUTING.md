@@ -57,6 +57,18 @@ find . -name "*.py" -not -path "./.github/*" -not -path "./.venv/*" | while read
 done
 ```
 
+### Commit Messages
+
+This project follows the [Conventional Commits](https://www.conventionalcommits.org/) format. Commit messages must use one of the following prefixes:
+
+- `feat:` — a new feature (triggers a MINOR version bump)
+- `fix:` — a bug fix (triggers a PATCH version bump)
+- `BREAKING CHANGE:` — a breaking change (triggers a MAJOR version bump)
+- `chore:` — maintenance tasks (no version bump)
+- `docs:` — documentation changes (no version bump)
+- `refactor:` — code restructuring (no version bump)
+- `test:` — test additions or changes (no version bump)
+
 ### Pull Requests
 
 1. Create a new branch for your feature or bug fix:
