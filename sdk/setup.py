@@ -1,8 +1,11 @@
 from setuptools import setup
 
+with open("../VERSION") as f:
+    version = f.read().strip()
+
 setup(
     name="whisperserve-sdk",
-    version="0.1.0",
+    version=version,
     description="Python SDK for the WhisperServe Audio Transcription API",
     packages=["sdk"],
     package_dir={"sdk": "."},
